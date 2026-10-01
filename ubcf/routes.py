@@ -92,23 +92,37 @@ def candles():
 @app.route('/candles/new_candle', methods=['GET', 'POST'])
 @login_required
 def new_candle():
-  temples = db.session.scalars(db.select(Temple)).all()
-  if request.method == 'POST':
-    temple_id = request.form['temple_id']
-    temple = db.session.get(Temple, temple_id)
-    candle_name = request.files['candle_name']
+    temples = db.session.scalars(db.select(Temple)).all()
 
-    if candle_name:
-      pic_file = save_image(candle_name)
+    if request.method == 'POST':
+        temple_id = request.form['temple_id']
+        temple = db.session.get(Temple, temple_id)
 
-    candle = Candle(name=pic_file, temple=temple, user=current_user)
-    db.session.add(candle)
-    db.session.commit()
+        candle_name = request.files['candle_name']
 
-    flash('Add New Candle Successfully', 'success')
-    return redirect(url_for('candles'))
+        if candle_name:
+            pic_file = save_image(candle_name)
 
-  return render_template('candles/add_candle.html', title='New Candle', temples=temples)
+            candle = Candle(
+                name=pic_file,
+                temple=temple,
+                user=current_user
+            )
+
+            db.session.add(candle)
+            db.session.commit()
+
+            flash('Add New Candle Successfully', 'success')
+            return redirect(url_for('candles'))
+
+        flash('Please select an image', 'danger')
+        return redirect(url_for('new_candle'))
+
+    return render_template(
+        'candles/add_candle.html',
+        title='New Candle',
+        temples=temples
+    )
 
 @app.route('/api/uboncandlefest/users', methods=['GET'])
 def users_api():
